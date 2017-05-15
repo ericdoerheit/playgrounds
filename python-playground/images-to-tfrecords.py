@@ -72,6 +72,8 @@ def main(argv):
 
     # Process all images in label folders
     counter = 0
+    output_file_path = os.path.join(output_dir, 'data.tfrecords')
+    writer = tf.python_io.TFRecordWriter(output_file_path)
     for i in tqdm(range(len(label_names)), desc="Total"):
         label = label_names[i]
         label_path = os.path.join(input_dir_images, label)
@@ -90,7 +92,7 @@ def main(argv):
             # Create and write TFRecord
             output_file_name = "{}_{}.tfrecord".format(label, os.path.splitext(image_file)[0])
             output_file_path = os.path.join(output_dir, output_file_name)
-            writer = tf.python_io.TFRecordWriter(output_file_path)
+            #writer = tf.python_io.TFRecordWriter(output_file_path)
 
             reader = png.Reader(image_file_path)
             width, height, pngdata, meta = reader.asDirect()
@@ -99,7 +101,7 @@ def main(argv):
             greyscale = meta['greyscale']
             alpha = meta['alpha']
 
-            image_2d = np.vstack(imap(np.uint16, pngdata))
+            image_2d = np.vstack(imap(np.uint8, pngdata))
             image = np.reshape(image_2d, (height, width, planes))
 
             # write label, shape, and image content to the TFRecord file
@@ -110,8 +112,9 @@ def main(argv):
                 'image':    _bytes_feature(image.tostring())
             }))
             writer.write(example.SerializeToString())
-            writer.close()
+            #writer.close()
 
+    writer.close()
     print('{} images found.'.format(counter))
     print("Finished.")
 
